@@ -1,0 +1,60 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# === Load and prepare /s/ segment data ===
+segments_path = "Segments CSV path"
+regions_path = "Different Speaker Regions path"
+
+segments = pd.read_csv(segments_path)
+segments['channel'] = segments['file'].str.extract(r'ch(\d)').astype(int)
+segments['call_id'] = segments['file'].str.extract(r'_(\d+)_fsp').astype(int)
+segments['duration'] = pd.to_numeric(segments['duration'], errors='coerce')
+segments = segments[segments['duration'] < 0.5]
+
+# === Load and clean speaker region data ===
+regions = pd.read_csv(regions_path)
+regions = regions[1:].copy()
+regions = regions.rename(columns={'speaker_channel_regions': 'call_id'})
+regions['call_id'] = regions['call_id'].astype(int)
+regions['channel'] = regions['channel'].astype(int)
+
+# === Merge and filter ===
+merged = segments.merge(regions, on=['call_id', 'channel'], how='inner')
+merged = merged.dropna(subset=['country_raised'])
+
+# === Order countries by median duration ===
+country_order = merged.groupby('country_raised')['duration'].median().sort_values().index
+
+# === Boxplot: Duration by Country ===
+plt.figure(figsize=(14, 6))
+sns.boxplot(
+    data=merged,
+    x='country_raised',
+    y='duration',
+    palette='Set3',
+    order=country_order,
+    showfliers=False  # Removes outlier dots
+)
+plt.title("/s/ Segment Duration by Speaker Country (Ordered)")
+plt.xlabel("Country Raised")
+plt.ylabel("Duration (seconds)")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Barplot for % of 'weak /s/' segments (< 20ms) ===
+merged['weak_s'] = merged['duration'] < 0.02
+weak_s_pct = merged.groupby('country_raised')['weak_s'].mean().loc[country_order] * 100
+
+plt.figure(figsize=(14, 4))
+sns.barplot(x=weak_s_pct.index, y=weak_s_pct.values, palette='Set2')
+plt.title("Rate of Weak /s/ Tokens (<20ms) by Country")
+plt.ylabel("Percent of Weak /s/")
+plt.xlabel("Country Raised")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+
+
