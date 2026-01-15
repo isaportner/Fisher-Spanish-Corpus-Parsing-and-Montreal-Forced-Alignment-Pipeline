@@ -2,8 +2,8 @@ import subprocess
 from pathlib import Path
 
 # === CONFIGURE PATHS ===
-sph_dir = Path("Insert directory")          
-output_dir = Path("Insert directory")      
+sph_dir = Path("Insert directory for your folder with SPH files")          
+output_dir = Path("Insert directory for your output of WAV files")      
 output_dir.mkdir(parents=True, exist_ok=True)
 
 # === CHOOSE YOUR TOOL ===
