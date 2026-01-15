@@ -1,0 +1,24 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("/Users/isabelportner/Desktop/Spanish_Corpus/s_segments.csv")
+df.head()
+df.isna().sum()
+
+outliers = df[df['duration'] > 0.5]
+outliers.to_csv("long_s_outliers.csv", index=False)
+
+df['duration'] = pd.to_numeric(df['duration'], errors='coerce')
+
+df_trimmed = df[df['duration'] < 0.5]  # Keep durations < 0.5 seconds
+df_trimmed['duration'].hist(bins=40)
+
+plt.title("/s/ Duration Distribution (trimmed)")
+plt.xlabel("Duration (seconds)")
+plt.ylabel("Count")
+plt.show()
+
+
+sns.histplot(df_trimmed['f2_50'].dropna(), bins=40)
+plt.title("F2 at midpoint for /s/")
