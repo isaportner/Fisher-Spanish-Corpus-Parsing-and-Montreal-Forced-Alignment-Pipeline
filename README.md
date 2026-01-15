@@ -1,7 +1,7 @@
 # Fisher Spanish Corpus Parsing + Montreal Forced Alignment Pipeline
-Summary: Automates SPH→WAV conversion, channel splitting, and forced alignment runs to generate TextGrid outputs at scale; added quality control checks to support reliable analysis.
+Summary (TLDR): Automates SPH→WAV conversion, channel splitting, and forced alignment runs to generate TextGrid outputs at scale; added quality control checks to support reliable analysis.
 
-Description
+Overview:
 This repository contains scripts to parse the Fisher Spanish corpus (LDC), split stereo SPH files by channel into per-speaker audio, convert transcripts to per-speaker `.lab` files, and run Montreal Forced Aligner (MFA) to produce TextGrids for downstream phonetic/variationist analysis.
 
 ## Corpus
