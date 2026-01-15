@@ -38,5 +38,4 @@ Output: TextGrid files for further phonetic/linguistic analysis
 conda env create -f environment.yml
 conda activate fisher-align
 
-## Data Analysis Examples
-![Example Image](Rate of Weak S Tokens by Country.png)
+**'''**
