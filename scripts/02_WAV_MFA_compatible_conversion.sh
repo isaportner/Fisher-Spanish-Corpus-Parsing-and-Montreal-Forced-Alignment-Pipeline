@@ -2,8 +2,8 @@ import subprocess
 from pathlib import Path
 
 # === CONFIGURE THESE PATHS ===
-input_dir = Path("Input your directory")     
-output_dir = Path("Input your output directory")       
+input_dir = Path("Input your directory for your folder with the .WAV files")     
+output_dir = Path("Input your output directory for MFA compatible .WAV files")       
 output_dir.mkdir(exist_ok=True)
 
 # === CONVERT EACH .WAV FILE TO BE COMPATIBLE WITH MFA ===
