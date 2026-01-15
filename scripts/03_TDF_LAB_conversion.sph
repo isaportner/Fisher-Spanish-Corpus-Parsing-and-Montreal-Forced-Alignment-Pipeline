@@ -1,0 +1,39 @@
+import pandas as pd
+from pathlib import Path
+
+# === CONFIGURE THESE PATHS ===
+input_dir = Path("Insert your directory for folder with tdf files")     
+output_dir = Path("Insert your output location for .lab files")    
+output_dir.mkdir(parents=True, exist_ok=True)
+
+# Column structure expected in .tdf files
+column_names = [
+    "file", "channel", "start", "end", "speaker", "speakerType",
+    "speakerDialect", "transcript", "section", "turn", "segment",
+    "sectionType", "suType"
+]
+
+# === .TDF TO .LAB ===
+for tdf_file in input_dir.glob("*.tdf"):
+    try:
+        print(f"Processing {tdf_file.name}")
+        df = pd.read_csv(tdf_file, sep="\t", skiprows=3, names=column_names)
+
+        # Create one transcript per speaker channel (0 and 1)
+        transcripts = {0: [], 1: []}
+        for _, row in df.iterrows():
+            channel = row["channel"]
+            text = str(row["transcript"]).strip()
+            if channel in [0, 1] and text:
+                transcripts[channel].append(text)
+
+        for channel, phrases in transcripts.items():
+            joined_text = " ".join(phrases)
+            out_file = output_dir / f"{tdf_file.stem}_ch{channel}.lab"
+            with open(out_file, "w", encoding="utf-8") as f:
+                f.write(joined_text)
+
+    except Exception as e:
+        print(f"Error processing {tdf_file.name}: {e}")
+
+print("All .tdf files processed.")
