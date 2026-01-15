@@ -1,0 +1,74 @@
+import os
+import parselmouth
+from parselmouth.praat import call
+from textgrid import TextGrid
+import csv
+
+# === CONFIG ===
+textgrid_dir = "Insert directory of your folder with the textgrid files created by MFA"
+wav_dir = "Insert directory of your folder with your WAV files"
+output_csv = "Ouputs a CSV file with your s-segments and phoneme levels"
+phoneme_label = "s"  # what label to match in phones tier
+
+# === INIT CSV ===
+with open(output_csv, 'w', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(['file', 'start', 'end', 'duration',
+                     'f0_25', 'f0_50', 'f0_75',
+                     'f1_25', 'f1_50', 'f1_75',
+                     'f2_25', 'f2_50', 'f2_75'])
+
+    for tg_file in os.listdir(textgrid_dir):
+        if not tg_file.endswith(".TextGrid"):
+            continue
+
+        tg_path = os.path.join(textgrid_dir, tg_file)
+        wav_path = os.path.join(wav_dir, tg_file.replace(".TextGrid", ".wav"))
+
+        if not os.path.exists(wav_path):
+            print(f"Skipping missing audio file: {wav_path}")
+            continue
+
+        # Load TextGrid and sound
+        tg = TextGrid.fromFile(tg_path)
+        sound = parselmouth.Sound(wav_path)
+        pitch = call(sound, "To Pitch", 0.0, 75, 500)
+        formants = call(sound, "To Formant (burg)", 0, 5, 5500, 0.025, 50)
+
+        # Find phones tier
+        phones = next((t for t in tg.tiers if t.name.lower() == "phones"), None)
+        if phones is None:
+            continue
+
+        for interval in phones.intervals:
+            if interval.mark.strip() != phoneme_label:
+                continue
+
+            start = interval.minTime
+            end = interval.maxTime
+            duration = end - start
+
+            t25 = start + duration * 0.25
+            t50 = start + duration * 0.50
+            t75 = start + duration * 0.75
+
+            f0_25 = call(pitch, "Get value at time", t25, "Hertz", "linear")
+            f0_50 = call(pitch, "Get value at time", t50, "Hertz", "linear")
+            f0_75 = call(pitch, "Get value at time", t75, "Hertz", "linear")
+
+            f1_25 = call(formants, "Get value at time", 1, t25, "Hertz", "linear")
+            f1_50 = call(formants, "Get value at time", 1, t50, "Hertz", "linear")
+            f1_75 = call(formants, "Get value at time", 1, t75, "Hertz", "linear")
+
+            f2_25 = call(formants, "Get value at time", 2, t25, "Hertz", "linear")
+            f2_50 = call(formants, "Get value at time", 2, t50, "Hertz", "linear")
+            f2_75 = call(formants, "Get value at time", 2, t75, "Hertz", "linear")
+
+            writer.writerow([
+                tg_file.replace(".TextGrid", ""),
+                start, end, duration,
+                f0_25, f0_50, f0_75,
+                f1_25, f1_50, f1_75,
+                f2_25, f2_50, f2_75
+            ])
+
